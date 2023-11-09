@@ -18,9 +18,9 @@ public class ShoppingCart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    long id;
+    private long id;
     @Column
-    private int totalPrice;
+    private double totalPrice;
     @JoinColumn()
     private List<CartItem> items;
 }
