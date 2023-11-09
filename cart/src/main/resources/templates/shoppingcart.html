@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Carrito de Compra</title>
+    <!-- Agrega el enlace a Bootstrap CDN para los estilos -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+          integrity="sha384-T9E9/tqgcXV44ztlXXaV6zpGFOByLWNYBIB9AE5ZbVv6/Zq/JmPZXKdOoSFM8XKJ" crossorigin="anonymous">
+</head>
+<body>
+
+<div class="container mt-4">
+    <h2 class="mb-4">Carrito de Compra</h2>
+
+    <!-- Lista de productos en el carrito -->
+    <div class="card">
+        <div class="card-body">
+            <div th:each="cartItem : ${cartItems}" class="row mb-3">
+                <div class="col-md-2">
+                    <img class="img-fluid" th:src="${cartItem.image}" alt="Imagen del producto">
+                </div>
+                <div class="col-md-6">
+                    <h5 th:text="${cartItem.title}"></h5>
+                    <p th:text="${cartItem.description}"></p>
+                </div>
+                <div class="col-md-2">
+                    <p class="text-muted" th:text="${cartItem.price}"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Precio total del carrito -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Precio Total:</h5>
+            <p class="card-text" th:text="${totalPrice}"></p>
+        </div>
+    </div>
+</div>
+
+<!-- Agrega el enlace a Bootstrap JS y Popper.js si es necesario -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
+        integrity="sha384-oL1v1p3KA9ae5nJDfz+tnXO+EHQoD5uoJLQC1g+eZLr+8Jf8ul/+T8x1WMIaTzsn"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8sh+Wy3UdzGmSxotWq4b5PZMGnB1dA6F1wGJ1h"
+        crossorigin="anonymous"></script>
+
+</body>
+</html>

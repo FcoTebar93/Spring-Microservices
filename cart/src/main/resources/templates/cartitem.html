@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Detalles del Producto</title>
+  <!-- Agrega el enlace a Bootstrap CDN para los estilos -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-T9E9/tqgcXV44ztlXXaV6zpGFOByLWNYBIB9AE5ZbVv6/Zq/JmPZXKdOoSFM8XKJ" crossorigin="anonymous">
+</head>
+<body>
+
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="text-center">Detalles del Producto</h2>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-4">
+          <img class="img-fluid" th:src="${cartItem.image}" alt="Imagen del producto">
+        </div>
+        <div class="col-md-8">
+          <table class="table">
+            <tbody>
+            <tr>
+              <th scope="row">ID:</th>
+              <td th:text="${cartItem.id}"></td>
+            </tr>
+            <tr>
+              <th scope="row">Título:</th>
+              <td th:text="${cartItem.title}"></td>
+            </tr>
+            <tr>
+              <th scope="row">Precio:</th>
+              <td th:text="${cartItem.price}"></td>
+            </tr>
+            <tr>
+              <th scope="row">Descripción:</th>
+              <td th:text="${cartItem.description}"></td>
+            </tr>
+            <tr>
+              <th scope="row">Categoría:</th>
+              <td th:text="${cartItem.category}"></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Agrega el enlace a Bootstrap JS y Popper.js si es necesario -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
+        integrity="sha384-oL1v1p3KA9ae5nJDfz+tnXO+EHQoD5uoJLQC1g+eZLr+8Jf8ul/+T8x1WMIaTzsn"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8sh+Wy3UdzGmSxotWq4b5PZMGnB1dA6F1wGJ1h"
+        crossorigin="anonymous"></script>
+</body>
+</html>
