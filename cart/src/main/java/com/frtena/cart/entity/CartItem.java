@@ -32,7 +32,8 @@ public class CartItem {
     @Column(nullable=false)
     private String image;
 
-    @JoinColumn()
+    @ManyToOne
+    @JoinColumn(name = "shopping_cart_id")  // Nombre de la columna que actúa como clave foránea
     private ShoppingCart shoppingCart;
 
 }

@@ -15,7 +15,7 @@
     <!-- Lista de productos en el carrito -->
     <div class="card">
         <div class="card-body">
-            <div th:each="cartItem : ${cartItems}" class="row mb-3">
+            <div th:each="cartItem, cartItemStat : ${cartItems}" class="row mb-3">
                 <div class="col-md-2">
                     <img class="img-fluid" th:src="${cartItem.image}" alt="Imagen del producto">
                 </div>
@@ -25,6 +25,14 @@
                 </div>
                 <div class="col-md-2">
                     <p class="text-muted" th:text="${cartItem.price}"></p>
+                </div>
+                <div class="col-md-2">
+                    <!-- Agregar el botón de eliminar -->
+                    <form th:action="@{'/shoppingcart/' + ${cartId} + '/remove-item/' + ${cartItem.id}}"
+                          method="post">
+                        <input type="hidden" name="_method" value="delete"/>
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
                 </div>
             </div>
         </div>
