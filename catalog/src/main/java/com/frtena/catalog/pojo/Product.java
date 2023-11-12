@@ -1,5 +1,6 @@
 package com.frtena.catalog.pojo;
 
+
 public class Product {
     private int id;
     private String title;
@@ -59,9 +60,5 @@ public class Product {
 
     public Rating getRating() {
         return rating;
-    }
-
-    public void setRating(Rating rating) {
-        this.rating = rating;
     }
 }

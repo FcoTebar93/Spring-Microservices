@@ -44,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (ExpiredJwtException e) {
-            // Manejo de token expirado
+            System.out.println("Token expired: "+e.getMessage());
         }
 
         // Continuar con la cadena de filtros

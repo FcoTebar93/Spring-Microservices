@@ -1,7 +1,6 @@
 package com.frtena.catalog.controller;
 
 import com.frtena.catalog.pojo.Product;
-import com.frtena.catalog.pojo.Rating;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 
 import com.frtena.users.models.Role;
 import com.frtena.users.models.User;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,24 +53,28 @@ public class AuthController {
   JwtUtils jwtUtils;
 
   @PostMapping("/login")
-  public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-
+  public String authenticateUser(@Valid @ModelAttribute("loginRequest") LoginRequest loginRequest,
+                                 HttpServletResponse response,
+                                 Model model) {
     Authentication authentication = authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+            new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
     String jwt = jwtUtils.generateJwtToken(authentication);
-    
-    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();    
-    List<String> roles = userDetails.getAuthorities().stream()
-        .map(item -> item.getAuthority())
-        .collect(Collectors.toList());
 
-    return ResponseEntity.ok(new JwtResponse(jwt, 
-                         userDetails.getId(), 
-                         userDetails.getUsername(), 
-                         userDetails.getEmail(), 
-                         roles));
+    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+    List<String> roles = userDetails.getAuthorities().stream()
+            .map(item -> item.getAuthority())
+            .collect(Collectors.toList());
+
+    // Agregar detalles del usuario al modelo
+    model.addAttribute("userId", userDetails.getId());
+    model.addAttribute("username", userDetails.getUsername());
+    model.addAttribute("email", userDetails.getEmail());
+    model.addAttribute("roles", roles);
+
+    // Redirigir a la URL deseada después del login
+    return "redirect:http://localhost:8098/productos";
   }
 
   @PostMapping("/register")
