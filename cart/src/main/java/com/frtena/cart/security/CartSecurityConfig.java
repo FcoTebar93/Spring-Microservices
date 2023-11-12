@@ -41,7 +41,7 @@ public class CartSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8095", "http://localhost:8098")); // Agrega tus orígenes permitidos aquí
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8093", "http://localhost:8098")); // Agrega tus orígenes permitidos aquí
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
 

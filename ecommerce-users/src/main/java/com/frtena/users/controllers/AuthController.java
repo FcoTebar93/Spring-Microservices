@@ -1,5 +1,6 @@
 package com.frtena.users.controllers;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -14,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,25 +35,37 @@ import com.frtena.users.repository.RoleRepository;
 import com.frtena.users.repository.UserRepository;
 import com.frtena.users.security.jwt.JwtUtils;
 import com.frtena.users.security.services.UserDetailsServiceImpl;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 
 
 @Controller
 public class AuthController {
   @Autowired
-  AuthenticationManager authenticationManager;
+  private AuthenticationManager authenticationManager;
 
   @Autowired
-  UserRepository userRepository;
+  private UserRepository userRepository;
+  @Autowired
+  private RoleRepository roleRepository;
 
   @Autowired
-  UserDetailsServiceImpl userDetailsService;
+  private UserDetailsServiceImpl userDetailsService;
 
   @Autowired
-  PasswordEncoder encoder;
+  private PasswordEncoder encoder;
 
   @Autowired
-  JwtUtils jwtUtils;
+  private JwtUtils jwtUtils;
+
+  @Autowired
+  private PasswordEncoder passwordEncoder;
+
+   @Autowired
+   private RestTemplateBuilder restTemplateBuilder;
+
+
 
   @PostMapping("/login")
   public String authenticateUser(@Valid @ModelAttribute("loginRequest") LoginRequest loginRequest,
@@ -91,9 +105,38 @@ public class AuthController {
     }
 
     // Crear un nuevo usuario y su carrito asociado
-    userDetailsService.registerNewUser(new User(signUpRequest.getUsername(),
-            signUpRequest.getEmail(),
-            encoder.encode(signUpRequest.getPassword())));
+    User newUser = new User();
+    newUser.setUsername(signUpRequest.getUsername());
+    newUser.setEmail(signUpRequest.getEmail());
+    newUser.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
+
+    // Asignar el rol por defecto (ROLE_USER) al nuevo usuario
+    Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+            .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+    Set<Role> roles = new HashSet<>();
+    roles.add(userRole);
+    newUser.setRoles(roles);
+
+    // Guardar el usuario en la base de datos
+    newUser = userRepository.save(newUser);
+
+    Long userId = newUser.getId();
+
+    try {
+      RestTemplate restTemplate = restTemplateBuilder.build();
+      URI location = restTemplate.postForLocation("http://localhost:8095/shoppingcart/create-user-cart/{userId}", null, userId);
+
+      if (location != null) {
+        // Puedes hacer algo con la ubicación si es necesario
+        System.out.println("New shopping cart created");
+      } else {
+        System.out.println("Shopping cart creation location is null.");
+      }
+    } catch (HttpClientErrorException e) {
+      // Manejar la excepción según tus necesidades
+      model.addAttribute("error", "Error creating user cart: " + e.getResponseBodyAsString());
+      return "register";
+    }
 
     model.addAttribute("success", "User registered successfully!");
     return "redirect:/login"; // Redirigir a la página de inicio de sesión después del registro exitoso

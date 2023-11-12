@@ -29,7 +29,7 @@ public class ShoppingCartController {
         return "shoppingCartDetails";
     }
 
-    @PostMapping("/create-user-cart/{id}")
+    @PostMapping("/create-user-cart/{userId}")
     public String createUserCart(@PathVariable long userId, Model model) {
         // Crea un nuevo carrito
         ShoppingCart shoppingCart = new ShoppingCart();
