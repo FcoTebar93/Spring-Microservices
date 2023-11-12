@@ -56,11 +56,11 @@
                     <p class="card-text">Valoración: <span th:text="${producto.rating.rate}"></span></p>
                 </div>
                 <div class="card-footer">
-                    <button class="btn btn-primary btn-block">Añadir al carrito</button>
-                </div>
+                    <button onclick="agregarAlCarrito(${producto}) " class="btn btn-primary btn-block">Añadir al carrito</button>
             </div>
         </div>
     </div>
+</div>
 </div>
 
 
@@ -68,5 +68,48 @@
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script th:inline="javascript">
+    async function agregarAlCarrito(producto) {
+        try {
+            // Recupera el token del almacenamiento local
+            var token = getJwtToken();
+            if (token) {
+                // Construye la URL del endpoint del carrito
+                var carritoUrl = 'http://localhost:8098/shoppingcart/' + producto.id + '/add-item';
+
+                // Configura los detalles de la solicitud
+                var headers = new Headers({
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                });
+
+                var body = JSON.stringify({
+                    'productId': producto.id,
+                    'price': producto.price,
+                    'name': producto.name,
+                    'image': producto.image,
+                    'description': producto.description,
+                    'category': producto.category,
+                });
+
+                // Realiza la solicitud para agregar el producto al carrito usando async/await
+                const response = await fetch(carritoUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: body
+                });
+
+                const data = await response.json();
+                console.log(data);
+            } else {
+                console.error('Token JWT no encontrado.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+</script>
 </body>
+
 </html>

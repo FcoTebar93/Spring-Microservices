@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import com.frtena.users.models.Role;
 import com.frtena.users.models.User;
+import com.frtena.users.security.services.UserDetailsImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -31,7 +32,7 @@ import com.frtena.users.payload.response.MessageResponse;
 import com.frtena.users.repository.RoleRepository;
 import com.frtena.users.repository.UserRepository;
 import com.frtena.users.security.jwt.JwtUtils;
-import com.frtena.users.security.services.UserDetailsImpl;
+import com.frtena.users.security.services.UserDetailsServiceImpl;
 import org.springframework.web.servlet.ModelAndView;
 
 
@@ -44,7 +45,7 @@ public class AuthController {
   UserRepository userRepository;
 
   @Autowired
-  RoleRepository roleRepository;
+  UserDetailsServiceImpl userDetailsService;
 
   @Autowired
   PasswordEncoder encoder;
@@ -89,20 +90,10 @@ public class AuthController {
       return "register"; // Nombre de la vista para mostrar el formulario de registro
     }
 
-    // Create new user's account
-    User user = new User(signUpRequest.getUsername(),
+    // Crear un nuevo usuario y su carrito asociado
+    userDetailsService.registerNewUser(new User(signUpRequest.getUsername(),
             signUpRequest.getEmail(),
-            encoder.encode(signUpRequest.getPassword()));
-
-    Set<String> strRoles = signUpRequest.getRole();
-    Set<Role> roles = new HashSet<>();
-
-    Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-            .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-    roles.add(userRole);
-
-    user.setRoles(roles);
-    userRepository.save(user);
+            encoder.encode(signUpRequest.getPassword())));
 
     model.addAttribute("success", "User registered successfully!");
     return "redirect:/login"; // Redirigir a la página de inicio de sesión después del registro exitoso

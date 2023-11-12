@@ -20,7 +20,10 @@ public class ShoppingCart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column
+    @Column(name = "user_id")
+    private double userId;
+
+    @Column(name = "totalPrice")
     private double totalPrice;
 
     @OneToMany(mappedBy = "shoppingCart", cascade = CascadeType.ALL)
