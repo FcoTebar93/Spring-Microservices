@@ -15,7 +15,7 @@
     <!-- Lista de productos en el carrito -->
     <div class="card">
         <div class="card-body">
-            <div th:each="cartItem, cartItemStat : ${cartItems}" class="row mb-3">
+            <div th:each="cartItem, cartItems : ${shoppingCart}" class="row mb-3">
                 <div class="col-md-2">
                     <img class="img-fluid" th:src="${cartItem.image}" alt="Imagen del producto">
                 </div>

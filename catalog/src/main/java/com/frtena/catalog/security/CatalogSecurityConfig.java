@@ -32,7 +32,7 @@ public class CatalogSecurityConfig {
                 .and()
                 .authorizeRequests()
                 .requestMatchers("/productos-por-precio", "/productos-por-categoria", "/productos", "/shoppingcart/**")
-                .permitAll().anyRequest().authenticated()
+                .authenticated()
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
@@ -42,7 +42,7 @@ public class CatalogSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8098")); // Agrega tus orígenes permitidos aquí
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8093")); // Agrega tus orígenes permitidos aquí
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
 

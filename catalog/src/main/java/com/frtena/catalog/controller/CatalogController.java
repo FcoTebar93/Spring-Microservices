@@ -1,6 +1,7 @@
 package com.frtena.catalog.controller;
 
 import com.frtena.catalog.pojo.Product;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,8 +22,6 @@ public class CatalogController {
 
     @GetMapping("/productos")
     public String obtenerCatalogo(Model model) {
-        // URL de la API de la fuente de datos
-        String apiUrl = "https://fakestoreapi.com/products";
 
         // Realizar una solicitud HTTP GET para obtener los datos de la API
         RestTemplate restTemplate = new RestTemplate();
@@ -111,6 +110,13 @@ public class CatalogController {
         model.addAttribute("productos", productList);
 
         return "productos";
+    }
+
+    @GetMapping("/redireccionar-a-carrito")
+    public String obtenerCatalogoOrdenadoPorRating(Model model, HttpSession httpSession) {
+        long userId = Long.parseLong(httpSession.getAttribute("userId").toString());
+
+        return "redirect:localhost:8095/shoppingcart/"+userId;
     }
 
 }

@@ -33,5 +33,10 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     public void deleteShoppingCart(long id) {
         shoppingCartRepository.deleteById(id);
     }
+
+    @Override
+    public ShoppingCart findByUserId(long userId) {
+        return shoppingCartRepository.findByUserId(userId);
+    }
 }
 

@@ -1,10 +1,7 @@
 package com.frtena.users.controllers;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.frtena.users.models.Role;
@@ -12,6 +9,7 @@ import com.frtena.users.models.User;
 import com.frtena.users.security.services.UserDetailsImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,9 +66,8 @@ public class AuthController {
 
 
   @PostMapping("/login")
-  public String authenticateUser(@Valid @ModelAttribute("loginRequest") LoginRequest loginRequest,
-                                 HttpServletResponse response,
-                                 Model model) {
+  public ResponseEntity<?> authenticateUser(@Valid @ModelAttribute("loginRequest") LoginRequest loginRequest,
+                                            HttpSession session) {
     Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
@@ -82,14 +79,18 @@ public class AuthController {
             .map(item -> item.getAuthority())
             .collect(Collectors.toList());
 
-    // Agregar detalles del usuario al modelo
-    model.addAttribute("userId", userDetails.getId());
-    model.addAttribute("username", userDetails.getUsername());
-    model.addAttribute("email", userDetails.getEmail());
-    model.addAttribute("roles", roles);
+    // Agregar detalles del usuario a la sesión (puedes personalizar esto según tus necesidades)
+    session.setAttribute("id", userDetails.getId());
+    session.setAttribute("username", userDetails.getUsername());
+    session.setAttribute("email", userDetails.getEmail());
+    session.setAttribute("roles", roles);
 
-    // Redirigir a la URL deseada después del login
-    return "redirect:http://localhost:8098/productos";
+    // Devolver el token en la respuesta
+    Map<String, String> response = new HashMap<>();
+    response.put("token", jwt);
+    response.put("redirectUrl", "http://localhost:8098/productos");
+
+    return ResponseEntity.ok(response);
   }
 
   @PostMapping("/register")

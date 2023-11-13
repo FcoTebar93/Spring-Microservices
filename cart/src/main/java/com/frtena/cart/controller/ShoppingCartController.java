@@ -1,32 +1,37 @@
 package com.frtena.cart.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frtena.cart.entity.CartItem;
 import com.frtena.cart.entity.ShoppingCart;
-import com.frtena.cart.service.ShoppingCartService;
+import com.frtena.cart.service.impl.ShoppingCartServiceImpl;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/shoppingcart")
+@RequestMapping("/cart")
 public class ShoppingCartController {
 
     @Autowired
-    private ShoppingCartService shoppingCartService;
+    private ShoppingCartServiceImpl shoppingCartService;
 
     @GetMapping("/{id}")
-    public String viewShoppingCart(@PathVariable long id, Model model) {
-        ShoppingCart shoppingCart = shoppingCartService.getShoppingCartById(id);
+    public String viewShoppingCart(@PathVariable long id, Model model, HttpSession httpSession) {
+        ShoppingCart shoppingCart = shoppingCartService.findByUserId(id);
 
         // Agrega el carrito al modelo para que puedas acceder a él en la vista
-        model.addAttribute("shoppingCart", shoppingCart);
+       model.addAttribute("shoppingCart", shoppingCart);
 
         // Retorna el nombre de la vista Thymeleaf
-        return "shoppingCartDetails";
+        return "shoppingcart";
     }
 
     @PostMapping("/create-user-cart/{userId}")
@@ -48,29 +53,35 @@ public class ShoppingCartController {
         return "cart created successfully!";
     }
 
-    public String addItemToShoppingCart(@PathVariable long id, @RequestBody CartItem cartItem, Model model) {
-        // Obtener el carrito existente por su ID
-        ShoppingCart shoppingCart = shoppingCartService.getShoppingCartById(id);
+    @PostMapping("/{shoppingCartUserId}/add-item/{itemId}")
+    public ResponseEntity<String> addItemToShoppingCart(@PathVariable long shoppingCartUserId, @PathVariable long itemId, Model model) {
+        try {
+            // Hacer la solicitud a la API para obtener los detalles del producto
+            String apiUrl = "https://fakestoreapi.com/products/" + itemId;
+            RestTemplate restTemplate = new RestTemplate();
+            String jsonResponse = restTemplate.getForObject(apiUrl, String.class);
 
-        // Verificar si el carrito existe
-        if (shoppingCart == null) {
-            // Si el carrito no existe, crea uno nuevo asociado al ID proporcionado
-            shoppingCart = new ShoppingCart();
-            shoppingCart.setUserId(id);
+            // Deserializar la respuesta JSON en un objeto CartItem
+            ObjectMapper objectMapper = new ObjectMapper();
+            CartItem cartItem = objectMapper.readValue(jsonResponse, CartItem.class);
+
+            // Obtener el carrito existente por su ID de usuario
+            ShoppingCart shoppingCart = shoppingCartService.findByUserId(shoppingCartUserId);
+
+            // Agregar el nuevo elemento al carrito
+            cartItem.setShoppingCart(shoppingCart);
+            shoppingCart.getItems().add(cartItem);
+
+            // Actualizar el precio total del carrito (según la lógica de tu aplicación)
+            shoppingCart.setTotalPrice(shoppingCart.getTotalPrice() + cartItem.getPrice());
+
+            // Guardar el carrito actualizado
+            shoppingCartService.saveShoppingCart(shoppingCart);
+
+            return new ResponseEntity<>("Producto agregado al carrito correctamente", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al agregar el producto al carrito", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        // Agregar el nuevo elemento al carrito
-        shoppingCart.getItems().add(cartItem);
-
-        // Actualizar el precio total del carrito (puedes hacer esto según la lógica de tu aplicación)
-        shoppingCart.setTotalPrice((shoppingCart.getTotalPrice() + cartItem.getPrice()));
-
-        // Guardar el carrito actualizado
-        shoppingCartService.saveShoppingCart(shoppingCart);
-
-        // Redireccionar a la vista de detalles del carrito
-        model.addAttribute("shoppingCart", shoppingCart);
-        return "redirect:/shoppingcart/" + shoppingCart.getId();
     }
 
     @DeleteMapping("/{id}/remove-item/{itemId}")

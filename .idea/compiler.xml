@@ -7,9 +7,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="cart" />
         <module name="users" />
         <module name="catalog" />
+        <module name="cart" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

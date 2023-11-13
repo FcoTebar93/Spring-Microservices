@@ -33,7 +33,7 @@
                     <h3 class="text-center">Login Form</h3>
                 </div>
                 <div class="card-body">
-                    <form method="post" th:action="@{/login}" class="form-horizontal" role="form">
+                    <form method="post" th:action="@{/login}" class="form-horizontal" role="form" id="loginForm">
                         <div class="mb-3">
                             <label for="username" class="control-label">Email *</label>
                             <input type="text"
@@ -64,5 +64,52 @@
         </div>
     </div>
 </div>
+
+<!-- Otro contenido de la página -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    $(document).ready(function() {
+        $('#loginForm').submit(function(e) {
+            e.preventDefault();
+
+            var formData = $(this).serialize();
+
+            $.ajax({
+                url: '/login',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    // Actualizar el token en el localStorage
+                    actualizarToken(response.token);
+
+                    // Configurar el token en las solicitudes AJAX salientes
+                    $.ajaxSetup({
+                        beforeSend: function(xhr) {
+                            if (response.token) {
+                                xhr.setRequestHeader('Authorization', 'Bearer ' + response.token);
+                                console.log(xhr)
+                            }
+                        }
+                    });
+
+                    // Redireccionar a la página de productos
+                    window.location.href = response.redirectUrl;
+                },
+                error: function(xhr) {
+                    // Manejar errores, si es necesario
+                }
+            });
+        });
+
+        function actualizarToken(token) {
+            // Guardar el token en el localStorage
+            localStorage.setItem('token', token);
+        }
+    });
+    /*]]>*/
+</script>
+
+
 </body>
 </html>
