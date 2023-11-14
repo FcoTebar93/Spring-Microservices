@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,6 +41,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class AuthController {
+
   @Autowired
   private AuthenticationManager authenticationManager;
 
@@ -49,7 +51,7 @@ public class AuthController {
   private RoleRepository roleRepository;
 
   @Autowired
-  private UserDetailsServiceImpl userDetailsService;
+  private UserDetailsImpl userDetails;
 
   @Autowired
   private PasswordEncoder encoder;
@@ -63,84 +65,88 @@ public class AuthController {
    @Autowired
    private RestTemplateBuilder restTemplateBuilder;
 
+   @Autowired
+   private RestTemplate restTemplate;
 
+  @Autowired
+  private UserDetailsServiceImpl userDetailsService;
 
   @PostMapping("/login")
   public ResponseEntity<?> authenticateUser(@Valid @ModelAttribute("loginRequest") LoginRequest loginRequest,
                                             HttpSession session) {
-    Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+    // Enviar la solicitud de autenticación al API Gateway
+    String gatewayUrl = "http://localhost:8093/ecommerce-users/login"; // ajusta la URL según tu configuración
+    ResponseEntity<String> response = restTemplate.postForEntity(gatewayUrl, loginRequest, String.class);
 
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-    String jwt = jwtUtils.generateJwtToken(authentication);
+    if (response.getStatusCode().is2xxSuccessful()) {
+      // Procesa la respuesta del API Gateway como lo hacías antes
+      String jwtToken = response.getBody(); // ajusta esto según la respuesta real del API Gateway
 
-    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-    List<String> roles = userDetails.getAuthorities().stream()
-            .map(item -> item.getAuthority())
-            .collect(Collectors.toList());
+      UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsService.loadUserByUsername(loginRequest.getUsername()); // Implementa este método según tus necesidades
 
-    // Agregar detalles del usuario a la sesión (puedes personalizar esto según tus necesidades)
-    session.setAttribute("id", userDetails.getId());
-    session.setAttribute("username", userDetails.getUsername());
-    session.setAttribute("email", userDetails.getEmail());
-    session.setAttribute("roles", roles);
+      // Agregar detalles del usuario a la sesión (puedes personalizar esto según tus necesidades)
+      session.setAttribute("id", userDetails.getId());
+      session.setAttribute("username", userDetails.getUsername());
+      session.setAttribute("email", userDetails.getEmail());
+      session.setAttribute("roles", userDetails.getAuthorities().stream()
+              .map(item -> item.getAuthority())
+              .collect(Collectors.toList()));
 
-    // Devolver el token en la respuesta
-    Map<String, String> response = new HashMap<>();
-    response.put("token", jwt);
-    response.put("redirectUrl", "http://localhost:8098/productos");
+      // Devolver el token en la respuesta
+      Map<String, String> responseMap = new HashMap<>();
+      responseMap.put("token", jwtToken);
+      responseMap.put("redirectUrl", "http://localhost:8098/productos");
 
-    return ResponseEntity.ok(response);
+      return ResponseEntity.ok(responseMap);
+    } else {
+      // Maneja el caso de error, si es necesario
+      return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+    }
   }
 
   @PostMapping("/register")
   public String registerUser(@ModelAttribute("signUpRequest") SignupRequest signUpRequest, Model model) {
     if (userRepository.existsByUsername(signUpRequest.getUsername())) {
       model.addAttribute("error", "Username is already taken!");
-      return "register"; // Nombre de la vista para mostrar el formulario de registro
+      return "register";
     }
 
     if (userRepository.existsByEmail(signUpRequest.getEmail())) {
       model.addAttribute("error", "Email is already in use!");
-      return "register"; // Nombre de la vista para mostrar el formulario de registro
+      return "register";
     }
 
-    // Crear un nuevo usuario y su carrito asociado
     User newUser = new User();
     newUser.setUsername(signUpRequest.getUsername());
     newUser.setEmail(signUpRequest.getEmail());
     newUser.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
 
-    // Asignar el rol por defecto (ROLE_USER) al nuevo usuario
     Role userRole = roleRepository.findByName(ERole.ROLE_USER)
             .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
     Set<Role> roles = new HashSet<>();
     roles.add(userRole);
     newUser.setRoles(roles);
 
-    // Guardar el usuario en la base de datos
     newUser = userRepository.save(newUser);
 
     Long userId = newUser.getId();
 
     try {
       RestTemplate restTemplate = restTemplateBuilder.build();
-      URI location = restTemplate.postForLocation("http://localhost:8095/shoppingcart/create-user-cart/{userId}", null, userId);
+      URI location = restTemplate.postForLocation("lb://ecommerce-cart/shoppingcart/create-user-cart/{userId}", null, userId);
 
       if (location != null) {
-        // Puedes hacer algo con la ubicación si es necesario
-        System.out.println("New shopping cart created");
+        System.out.println("Nuevo carrito de compras creado");
       } else {
-        System.out.println("Shopping cart creation location is null.");
+        System.out.println("La ubicación de creación del carrito de compras es nula.");
       }
     } catch (HttpClientErrorException e) {
-      // Manejar la excepción según tus necesidades
       model.addAttribute("error", "Error creating user cart: " + e.getResponseBodyAsString());
       return "register";
     }
 
     model.addAttribute("success", "User registered successfully!");
-    return "redirect:/login"; // Redirigir a la página de inicio de sesión después del registro exitoso
+    return "redirect:/login";
   }
 
   @GetMapping("/login")
@@ -150,7 +156,6 @@ public class AuthController {
 
   @GetMapping("/register")
   public String register(Model model) {
-    // Agregar un nuevo objeto User al modelo para el formulario
     model.addAttribute("signUpRequest", new SignupRequest());
     return "register";
   }
